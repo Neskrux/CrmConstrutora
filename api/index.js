@@ -17,8 +17,8 @@ const corsOptions = {
   origin: [
     'http://localhost:3000',
     'https://localhost:3000',
-    'https://crm-invest.vercel.app',
-    'https://crm-invest-*.vercel.app',
+    'https://crm-construtora.vercel.app',
+    'https://crm-construtora-*.vercel.app',
     process.env.FRONTEND_URL,
     /\.vercel\.app$/
   ],
@@ -55,9 +55,9 @@ const upload = multer({
 });
 
 // Supabase client - CORRIGIDO
-const supabaseUrl = process.env.SUPABASE_URL || 'https://yomvfjabpomcvfnusgm.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvbXZmamJhcGJvbWN2Zm51c2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzOTEyMzcsImV4cCI6MjA2Njk2NzIzN30.1CNcC_LBqDBHXKIiUUcxLDXWHfrtx6-IBOc4rHvDb-4';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvbXZmamJhcGJvbWN2Zm51c2dtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTM5MTIzNywiZXhwIjoyMDY2OTY3MjM3fQ.l_dMjGQRQjJDsqUdH-BwbqctZZFeZ8kyX1cVgKSgibc';
+const supabaseUrl = process.env.SUPABASE_URL || 'https://nzznsccvjkfzpayjylay.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56em5zY2N2amtmenBheWp5bGF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2NzQ3NjksImV4cCI6MjA2ODI1MDc2OX0.6W0O558PvkBp7pJ2FufwZ3rlGvh_2VxggcWhaxclfo8';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56em5zY2N2amtmenBheWp5bGF5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjY3NDc2OSwiZXhwIjoyMDY2OTUwNzY5fQ.6W0O558PvkBp7pJ2FufwZ3rlGvh_2VxggcWhaxclfo8';
 
 // Cliente Supabase para operações normais
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -69,7 +69,7 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 const STORAGE_BUCKET = 'contratos';
 
 // JWT Secret - CORRIGIDO
-const JWT_SECRET = process.env.JWT_SECRET || 'DasRGZ7BT3A47YF/0coBWUZ2qpsMcBfGRXV7C2ymOTHnmwPribCSuQOQlsZ6SNf2erKp29aysgDvAtUFBmcm1g==';
+const JWT_SECRET = process.env.JWT_SECRET || 'DkY/hxlrCCLFG8myFFZCegAXcwQsrDa+U+t9Jn3Lba6X5ujds6qTsftGiPiGYt4NztQP8srqKT3HUYxG28ZROw==';
 
 // Função para normalizar emails (converter para minúsculas e limpar espaços)
 const normalizarEmail = (email) => {
