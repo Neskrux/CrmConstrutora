@@ -1543,6 +1543,16 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
   }
 });
 
+// Endpoint de teste para verificar variáveis de ambiente
+app.get('/api/test-env', (req, res) => {
+  res.json({
+    SUPABASE_URL: process.env.SUPABASE_URL || 'NÃO DEFINIDA',
+    SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY ? 'DEFINIDA' : 'NÃO DEFINIDA',
+    JWT_SECRET: process.env.JWT_SECRET ? 'DEFINIDA' : 'NÃO DEFINIDA',
+    NODE_ENV: process.env.NODE_ENV || 'NÃO DEFINIDA'
+  });
+});
+
 // Inicializar tabelas quando o módulo for carregado
 (async () => {
   try {
