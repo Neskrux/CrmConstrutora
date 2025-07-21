@@ -4,9 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 const Agendamentos = () => {
   const { makeRequest } = useAuth();
   const [agendamentos, setAgendamentos] = useState([]);
-  const [pacientes, setPacientes] = useState([]);
-  const [consultores, setConsultores] = useState([]);
-  const [clinicas, setClinicas] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingAgendamento, setEditingAgendamento] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,23 +12,19 @@ const Agendamentos = () => {
   
   // Estados dos filtros
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
-  const [filtroConsultor, setFiltroConsultor] = useState('');
-  const [filtroClinica, setFiltroClinica] = useState('');
   const [filtroDataInicio, setFiltroDataInicio] = useState('');
   const [filtroDataFim, setFiltroDataFim] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
   
   const [formData, setFormData] = useState({
-    paciente_id: '',
-    consultor_id: '',
-    clinica_id: '',
+    cliente_id: '',
     data_agendamento: '',
     horario: '',
     status: 'agendado',
     observacoes: ''
   });
 
-  // Status disponíveis para agendamentos
+  // Status disponíveis para visitas
   const statusOptions = [
     { value: 'agendado', label: 'Agendado', color: '#2563eb' },
     { value: 'lembrado', label: 'Lembrado', color: '#059669' },
@@ -47,9 +41,7 @@ const Agendamentos = () => {
 
   useEffect(() => {
     fetchAgendamentos();
-    fetchPacientes();
-    fetchConsultores();
-    fetchClinicas();
+    fetchClientes();
   }, []);
 
   const fetchAgendamentos = async () => {
@@ -60,61 +52,33 @@ const Agendamentos = () => {
       if (response.ok) {
         setAgendamentos(data);
       } else {
-        console.error('Erro ao carregar agendamentos:', data.error);
-        setMessage('Erro ao carregar agendamentos: ' + data.error);
+        console.error('Erro ao carregar visitas:', data.error);
+        setMessage('Erro ao carregar visitas: ' + data.error);
       }
     } catch (error) {
-      console.error('Erro ao carregar agendamentos:', error);
+      console.error('Erro ao carregar visitas:', error);
       setMessage('Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchPacientes = async () => {
+  const fetchClientes = async () => {
     try {
-      const response = await makeRequest('/pacientes');
+      const response = await makeRequest('/clientes');
       const data = await response.json();
       
       if (response.ok) {
-        setPacientes(data);
+        setClientes(data);
       } else {
-        console.error('Erro ao carregar pacientes:', data.error);
+        console.error('Erro ao carregar clientes:', data.error);
       }
     } catch (error) {
-      console.error('Erro ao carregar pacientes:', error);
+      console.error('Erro ao carregar clientes:', error);
     }
   };
 
-  const fetchConsultores = async () => {
-    try {
-      const response = await makeRequest('/consultores');
-      const data = await response.json();
-      
-      if (response.ok) {
-        setConsultores(data);
-      } else {
-        console.error('Erro ao carregar consultores:', data.error);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar consultores:', error);
-    }
-  };
 
-  const fetchClinicas = async () => {
-    try {
-      const response = await makeRequest('/clinicas');
-      const data = await response.json();
-      
-      if (response.ok) {
-        setClinicas(data);
-      } else {
-        console.error('Erro ao carregar clínicas:', data.error);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar clínicas:', error);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,13 +99,11 @@ const Agendamentos = () => {
       const data = await response.json();
       
       if (response.ok) {
-        setMessage(editingAgendamento ? 'Agendamento atualizado com sucesso!' : 'Agendamento criado com sucesso!');
+        setMessage(editingAgendamento ? 'Visita atualizada com sucesso!' : 'Visita criada com sucesso!');
         setShowModal(false);
         setEditingAgendamento(null);
         setFormData({
-          paciente_id: '',
-          consultor_id: '',
-          clinica_id: '',
+          cliente_id: '',
           data_agendamento: '',
           horario: '',
           status: 'agendado',
@@ -150,20 +112,18 @@ const Agendamentos = () => {
         fetchAgendamentos();
         setTimeout(() => setMessage(''), 3000);
       } else {
-        setMessage('Erro ao salvar agendamento: ' + data.error);
+        setMessage('Erro ao salvar visita: ' + data.error);
       }
     } catch (error) {
-      console.error('Erro ao salvar agendamento:', error);
-      setMessage('Erro ao salvar agendamento');
+      console.error('Erro ao salvar visita:', error);
+      setMessage('Erro ao salvar visita');
     }
   };
 
   const handleEdit = (agendamento) => {
     setEditingAgendamento(agendamento);
     setFormData({
-      paciente_id: agendamento.paciente_id || '',
-      consultor_id: agendamento.consultor_id || '',
-      clinica_id: agendamento.clinica_id || '',
+      cliente_id: agendamento.cliente_id || '',
       data_agendamento: agendamento.data_agendamento || '',
       horario: agendamento.horario || '',
       status: agendamento.status || 'agendado',
@@ -189,7 +149,7 @@ const Agendamentos = () => {
       const data = await response.json();
       
       if (response.ok) {
-        setMessage('Status atualizado com sucesso!');
+        setMessage('Status da visita e indicação atualizados com sucesso!');
         fetchAgendamentos();
         setTimeout(() => setMessage(''), 3000);
       } else {
@@ -214,7 +174,7 @@ const Agendamentos = () => {
       const data = await response.json();
       
       if (response.ok) {
-        setMessage('Paciente marcado como lembrado!');
+        setMessage('Cliente marcado como lembrado!');
         fetchAgendamentos();
         setTimeout(() => setMessage(''), 3000);
       } else {
@@ -246,9 +206,7 @@ const Agendamentos = () => {
 
   const resetForm = () => {
     setFormData({
-      paciente_id: '',
-      consultor_id: '',
-      clinica_id: '',
+      cliente_id: '',
       data_agendamento: '',
       horario: '',
       status: 'agendado',
@@ -259,8 +217,6 @@ const Agendamentos = () => {
   };
 
   const limparFiltros = () => {
-    setFiltroConsultor('');
-    setFiltroClinica('');
     setFiltroDataInicio('');
     setFiltroDataFim('');
     setFiltroStatus('');
@@ -268,12 +224,6 @@ const Agendamentos = () => {
 
   // Aplicar filtros
   const agendamentosFiltrados = agendamentos.filter(agendamento => {
-    // Filtro por consultor
-    const matchConsultor = !filtroConsultor || agendamento.consultor_id.toString() === filtroConsultor;
-    
-    // Filtro por clínica
-    const matchClinica = !filtroClinica || agendamento.clinica_id.toString() === filtroClinica;
-    
     // Filtro por status
     const matchStatus = !filtroStatus || agendamento.status === filtroStatus;
     
@@ -288,20 +238,20 @@ const Agendamentos = () => {
       matchData = agendamento.data_agendamento <= filtroDataFim;
     }
     
-    return matchConsultor && matchClinica && matchStatus && matchData;
+    return matchStatus && matchData;
   });
 
   // Obter data atual para o input
   const hoje = new Date().toISOString().split('T')[0];
 
   // Verificar se há filtros ativos
-  const temFiltrosAtivos = filtroConsultor || filtroClinica || filtroDataInicio || filtroDataFim || filtroStatus;
+  const temFiltrosAtivos = filtroDataInicio || filtroDataFim || filtroStatus;
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Gerenciar Agendamentos</h1>
-        <p className="page-subtitle">Gerencie consultas e acompanhe o pipeline de vendas</p>
+        <h1 className="page-title">Gerenciar Visitas</h1>
+        <p className="page-subtitle">Gerencie visitas e acompanhe o pipeline de vendas</p>
       </div>
 
       {message && (
@@ -310,17 +260,17 @@ const Agendamentos = () => {
         </div>
       )}
 
-      {/* Dashboard de Agendamentos */}
+      {/* Dashboard de Visitas */}
       <div className="stats-grid" style={{ marginBottom: '2rem' }}>
         <div className="stat-card">
-          <div className="stat-label">Agendados</div>
+          <div className="stat-label">Agendadas</div>
           <div className="stat-value" style={{ color: '#2563eb' }}>
             {agendamentos.filter(a => a.status === 'agendado').length}
           </div>
         </div>
         
         <div className="stat-card">
-          <div className="stat-label">Lembrados</div>
+          <div className="stat-label">Lembradas</div>
           <div className="stat-value" style={{ color: '#059669' }}>
             {agendamentos.filter(a => a.status === 'lembrado').length}
           </div>
@@ -341,17 +291,17 @@ const Agendamentos = () => {
         </div>
       </div>
 
-      {/* Alerta para agendamentos de hoje */}
+      {/* Alerta para visitas de hoje */}
       {agendamentos.filter(a => ehHoje(a.data_agendamento)).length > 0 && (
         <div className="alert alert-warning" style={{ marginBottom: '2rem' }}>
           <strong>Atenção!</strong> Você tem <strong>{agendamentos.filter(a => ehHoje(a.data_agendamento)).length}</strong> 
-          agendamento(s) para hoje! Não se esqueça de fazer os lembretes.
+          visita(s) para hoje! Não se esqueça de fazer os lembretes.
         </div>
       )}
 
       <div className="card">
         <div className="card-header">
-          <h2 className="card-title">Lista de Agendamentos</h2>
+          <h2 className="card-title">Lista de Visitas</h2>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <button 
               className="btn btn-secondary"
@@ -381,7 +331,7 @@ const Agendamentos = () => {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 5v14M5 12h14" />
               </svg>
-              Novo Agendamento
+              Nova Visita
             </button>
           </div>
         </div>
@@ -420,39 +370,7 @@ const Agendamentos = () => {
               )}
             </div>
             
-            <div className="grid grid-2" style={{ marginBottom: '1rem' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Consultor</label>
-                <select
-                  value={filtroConsultor}
-                  onChange={(e) => setFiltroConsultor(e.target.value)}
-                  className="form-select"
-                >
-                  <option value="">Todos os consultores</option>
-                  {consultores.map(consultor => (
-                    <option key={consultor.id} value={consultor.id}>
-                      {consultor.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Clínica</label>
-                <select
-                  value={filtroClinica}
-                  onChange={(e) => setFiltroClinica(e.target.value)}
-                  className="form-select"
-                >
-                  <option value="">Todas as clínicas</option>
-                  {clinicas.map(clinica => (
-                    <option key={clinica.id} value={clinica.id}>
-                      {clinica.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
 
             <div className="grid grid-3">
               <div className="form-group" style={{ margin: 0 }}>
@@ -502,19 +420,19 @@ const Agendamentos = () => {
                 color: '#4b5563',
                 fontSize: '0.9rem'
               }}>
-                Mostrando <strong>{agendamentosFiltrados.length}</strong> de {agendamentos.length} agendamento(s)
+                Mostrando <strong>{agendamentosFiltrados.length}</strong> de {agendamentos.length} visita(s)
               </div>
             )}
           </div>
         )}
 
         {loading ? (
-          <p>Carregando agendamentos...</p>
+          <p>Carregando visitas...</p>
         ) : agendamentosFiltrados.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#718096', padding: '2rem' }}>
             {temFiltrosAtivos 
-              ? 'Nenhum agendamento encontrado com os filtros aplicados.'
-              : 'Nenhum agendamento cadastrado ainda. Clique em "Novo Agendamento" para começar.'
+              ? 'Nenhuma visita encontrada com os filtros aplicados.'
+              : 'Nenhuma visita cadastrada ainda. Clique em "Nova Visita" para começar.'
             }
           </p>
         ) : (
@@ -522,9 +440,7 @@ const Agendamentos = () => {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Paciente</th>
-                  <th>Consultor</th>
-                  <th>Clínica</th>
+                  <th>Cliente</th>
                   <th>Data</th>
                   <th>Horário</th>
                   <th>Status</th>
@@ -539,10 +455,10 @@ const Agendamentos = () => {
                       backgroundColor: ehHoje(agendamento.data_agendamento) ? '#fef3c7' : 'transparent'
                     }}>
                       <td>
-                        <strong>{agendamento.paciente_nome}</strong>
-                        {agendamento.paciente_telefone && (
+                        <strong>{agendamento.cliente_nome}</strong>
+                        {agendamento.cliente_telefone && (
                           <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-                            {agendamento.paciente_telefone}
+                            {agendamento.cliente_telefone}
                           </div>
                         )}
                         {agendamento.observacoes && (
@@ -551,8 +467,6 @@ const Agendamentos = () => {
                           </div>
                         )}
                       </td>
-                      <td>{agendamento.consultor_nome}</td>
-                      <td>{agendamento.clinica_nome}</td>
                       <td>
                         <span style={{
                           fontWeight: ehHoje(agendamento.data_agendamento) ? 'bold' : 'normal',
@@ -629,7 +543,7 @@ const Agendamentos = () => {
           <div className="modal">
             <div className="modal-header">
               <h2 className="modal-title">
-                {editingAgendamento ? 'Editar Agendamento' : 'Novo Agendamento'}
+                {editingAgendamento ? 'Editar Visita' : 'Nova Visita'}
               </h2>
               <button 
                 className="close-btn"
@@ -641,68 +555,33 @@ const Agendamentos = () => {
 
             <form onSubmit={handleSubmit} autoComplete="off">
               <div className="form-group">
-                <label className="form-label">Paciente *</label>
+                <label className="form-label">Cliente *</label>
                 <select
-                  name="paciente_id"
+                  name="cliente_id"
                   className="form-select"
-                  value={formData.paciente_id}
+                  value={formData.cliente_id}
                   onChange={handleInputChange}
                   required
                 >
-                  <option value="">Selecione um paciente</option>
-                  {pacientes.map(paciente => (
-                    <option key={paciente.id} value={paciente.id}>
-                      {paciente.nome} {paciente.telefone && `- ${paciente.telefone}`}
+                  <option value="">Selecione um cliente</option>
+                  {clientes.map(cliente => (
+                    <option key={cliente.id} value={cliente.id}>
+                      {cliente.nome} {cliente.telefone && `- ${cliente.telefone}`}
                     </option>
                   ))}
                 </select>
-                {pacientes.length === 0 && (
+                {clientes.length === 0 && (
                   <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                    Nenhum paciente cadastrado. Cadastre um paciente primeiro.
+                    Nenhum cliente cadastrado. Cadastre um cliente primeiro.
                   </p>
                 )}
               </div>
 
-              <div className="grid grid-2">
-                <div className="form-group">
-                  <label className="form-label">Consultor *</label>
-                  <select
-                    name="consultor_id"
-                    className="form-select"
-                    value={formData.consultor_id}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Selecione um consultor</option>
-                    {consultores.map(consultor => (
-                      <option key={consultor.id} value={consultor.id}>
-                        {consultor.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
-                <div className="form-group">
-                  <label className="form-label">Clínica</label>
-                  <select
-                    name="clinica_id"
-                    className="form-select"
-                    value={formData.clinica_id}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Selecione uma clínica</option>
-                    {clinicas.map(clinica => (
-                      <option key={clinica.id} value={clinica.id}>
-                        {clinica.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
 
               <div className="grid grid-3">
                 <div className="form-group">
-                  <label className="form-label">Data do Agendamento *</label>
+                  <label className="form-label">Data da Visita *</label>
                   <input
                     type="date"
                     name="data_agendamento"
@@ -752,7 +631,7 @@ const Agendamentos = () => {
                   className="form-textarea"
                   value={formData.observacoes}
                   onChange={handleInputChange}
-                  placeholder="Informações adicionais sobre o agendamento..."
+                  placeholder="Informações adicionais sobre a visita..."
                   rows="3"
                   autoComplete="off"
                 />
@@ -770,7 +649,7 @@ const Agendamentos = () => {
                   type="submit"
                   className="btn btn-primary"
                 >
-                  {editingAgendamento ? 'Atualizar Agendamento' : 'Criar Agendamento'}
+                  {editingAgendamento ? 'Atualizar Visita' : 'Criar Visita'}
                 </button>
               </div>
             </form>

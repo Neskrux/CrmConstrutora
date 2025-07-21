@@ -70,7 +70,7 @@ body {
 /* Sidebar Profissional */
 .sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #1a1d23 0%, #0f1114 100%);
+  background: linear-gradient(180deg, #000064 0%, #000050 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -132,13 +132,13 @@ body {
 
 .nav-link:hover {
   color: white;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-link.active {
   color: white;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-left-color: var(--accent);
+  background-color: rgba(255, 255, 255, 0.15);
+  border-left-color: #4a90e2;
 }
 
 /* Main Content */
@@ -492,13 +492,6 @@ body {
   font-size: 0.875rem;
   color: var(--gray-500);
   font-weight: 500;
-}
-
-.stat-sublabel {
-  font-size: 0.75rem;
-  color: var(--gray-400);
-  font-weight: 400;
-  margin-top: 0.25rem;
 }
 
 .stat-change {
