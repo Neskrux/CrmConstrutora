@@ -98,7 +98,7 @@ const uploadToSupabase = async (file) => {
 };
 
 // JWT Secret
-const JWT_SECRET = process.env.JWT_SECRET || 'crm-secret-key-2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'DkY/hxlrCCLFG8myFFZCegAXcwQsrDa+U+t9Jn3Lba6X5ujds6qTsftGiPiGYt4NztQP8srqKT3HUYxG28ZROw==';
 
 // Função para normalizar emails (converter para minúsculas e limpar espaços)
 const normalizarEmail = (email) => {
