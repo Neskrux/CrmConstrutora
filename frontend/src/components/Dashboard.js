@@ -8,9 +8,6 @@ const Dashboard = () => {
   const [subPeriodo, setSubPeriodo] = useState(null); // para dias da semana
   const [semanaOpcao, setSemanaOpcao] = useState('atual'); // atual, proxima
   const [mesAno, setMesAno] = useState(new Date()); // para navegação mensal
-  const [filtroRegiao, setFiltroRegiao] = useState({ cidade: '', estado: '' });
-  const [cidadesDisponiveis, setCidadesDisponiveis] = useState([]);
-  const [estadosDisponiveis, setEstadosDisponiveis] = useState([]);
   const [stats, setStats] = useState({
     totalIndicacoes: 0,
     totalAgendamentos: 0,
@@ -24,41 +21,15 @@ const Dashboard = () => {
     valorPeriodo: 0,
     novosLeadsPeriodo: 0,
     // Estatísticas por dia da semana
-    estatisticasPorDia: {},
-    // Estatísticas de indicações e agendamentos por cidade
-    agendamentosPorCidade: []
+    estatisticasPorDia: {}
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
-    fetchRegioesDisponiveis();
-  }, [periodo, subPeriodo, mesAno, semanaOpcao, filtroRegiao]);
+  }, [periodo, subPeriodo, mesAno, semanaOpcao]);
 
-  // Buscar cidades quando estado for alterado
-  useEffect(() => {
-    const fetchCidades = async () => {
-      try {
-        if (filtroRegiao.estado) {
-          const cidadesRes = await makeRequest(`/imobiliarias/cidades?estado=${filtroRegiao.estado}`);
-          if (cidadesRes.ok) {
-            const cidades = await cidadesRes.json();
-            setCidadesDisponiveis(cidades);
-          }
-        } else {
-          const cidadesRes = await makeRequest('/imobiliarias/cidades');
-          if (cidadesRes.ok) {
-            const cidades = await cidadesRes.json();
-            setCidadesDisponiveis(cidades);
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao carregar cidades:', error);
-      }
-    };
 
-    fetchCidades();
-  }, [filtroRegiao.estado]);
 
   const calcularComissao = () => {
     return 5000; // R$ 5.000 por fechamento
@@ -66,35 +37,15 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      // Construir parâmetros de busca para clínicas
-      const imobiliariasParams = new URLSearchParams();
-      if (filtroRegiao.estado) imobiliariasParams.append('estado', filtroRegiao.estado);
-      if (filtroRegiao.cidade) imobiliariasParams.append('cidade', filtroRegiao.cidade);
-      
-      const [indicacoesRes, agendamentosRes, consultoresRes, imobiliariasRes] = await Promise.all([
+      const [indicacoesRes, agendamentosRes, consultoresRes] = await Promise.all([
         makeRequest('/clientes'),
         makeRequest('/agendamentos'),
-        makeRequest('/consultores'),
-        makeRequest(`/imobiliarias?${imobiliariasParams.toString()}`)
+        makeRequest('/consultores')
       ]);
 
       const indicacoes = await indicacoesRes.json();
-      let agendamentos = await agendamentosRes.json();
+      const agendamentos = await agendamentosRes.json();
       const consultores = await consultoresRes.json();
-      const imobiliariasFiltradas = await imobiliariasRes.json();
-
-      // Aplicar filtros por região se especificados
-      if (filtroRegiao.cidade || filtroRegiao.estado) {
-        const imobiliariasIds = imobiliariasFiltradas.map(c => c.id);
-        
-        // Filtrar visitas por região (via clínicas)
-        agendamentos = agendamentos.filter(agendamento => {
-          if (!agendamento.imobiliaria_id) return false; // excluir agendamentos sem clínica quando há filtro
-          return imobiliariasIds.includes(agendamento.imobiliaria_id);
-        });
-
-        
-      }
 
       const hoje = new Date();
       const hojeStr = hoje.toISOString().split('T')[0];
@@ -179,83 +130,7 @@ const Dashboard = () => {
         }
       }
 
-              // Calcular indicações e visitas por cidade
-      const dadosPorCidade = {};
-      
-      // Buscar todas as clínicas se não houver filtro de região
-      let todasClinicas = imobiliariasFiltradas;
-      if (!filtroRegiao.cidade && !filtroRegiao.estado) {
-        // Se não há filtro de região, buscar todas as clínicas do banco
-        try {
-          const todasClinicasRes = await makeRequest('/imobiliarias');
-          if (todasClinicasRes.ok) {
-            todasClinicas = await todasClinicasRes.json();
-          }
-        } catch (error) {
-          console.error('Erro ao buscar todas as clínicas:', error);
-        }
-      }
 
-      // Criar mapa de clínicas por ID para facilitar a busca
-      const imobiliariasMap = {};
-      todasClinicas.forEach(imobiliaria => {
-        imobiliariasMap[imobiliaria.id] = imobiliaria;
-      });
-      
-      // Agrupar indicações por cidade (usando a imobiliária do agendamento mais recente ou primeira imobiliária)
-      indicacoes.forEach(cliente => {
-        // Buscar agendamento mais recente do cliente para determinar a cidade
-        const agendamentoCliente = agendamentos.find(a => a.cliente_id === cliente.id);
-        let cidade = null;
-        
-        if (agendamentoCliente && agendamentoCliente.imobiliaria_id) {
-          const imobiliaria = imobiliariasMap[agendamentoCliente.imobiliaria_id];
-          if (imobiliaria) {
-            cidade = imobiliaria.cidade;
-          }
-        }
-        
-        if (cidade) {
-          if (!dadosPorCidade[cidade]) {
-            dadosPorCidade[cidade] = {
-              cidade: cidade,
-              indicacoes: 0,
-              agendamentos: 0
-            };
-          }
-          dadosPorCidade[cidade].indicacoes++;
-        }
-      });
-      
-              // Agrupar visitas por cidade das clínicas
-      agendamentos.forEach(agendamento => {
-        if (agendamento.imobiliaria_id) {
-          const imobiliaria = imobiliariasMap[agendamento.imobiliaria_id];
-          if (imobiliaria && imobiliaria.cidade) {
-            const cidade = imobiliaria.cidade;
-            if (!dadosPorCidade[cidade]) {
-              dadosPorCidade[cidade] = {
-                cidade: cidade,
-                indicacoes: 0,
-                agendamentos: 0
-              };
-            }
-            dadosPorCidade[cidade].agendamentos++;
-          }
-        }
-      });
-
-
-
-      // Converter para array e ordenar por total (indicações + agendamentos)
-      const agendamentosPorCidadeArray = Object.values(dadosPorCidade)
-        .map(item => ({
-          ...item,
-          total: item.indicacoes + item.agendamentos,
-          conversaoAgendamento: item.indicacoes > 0 ? ((item.agendamentos / item.indicacoes) * 100).toFixed(1) : 0
-        }))
-        .sort((a, b) => b.total - a.total)
-        .slice(0, 10); // Mostrar apenas top 10 cidades
 
       // Calcular comissões
       const mesAtual = new Date().getMonth();
@@ -331,8 +206,7 @@ const Dashboard = () => {
         fechamentosPeriodo: fechamentosPeriodo,
         valorPeriodo: valorTotal,
         novosLeadsPeriodo,
-        estatisticasPorDia,
-        agendamentosPorCidade: agendamentosPorCidadeArray
+        estatisticasPorDia
       });
       setLoading(false);
     } catch (error) {
@@ -341,17 +215,7 @@ const Dashboard = () => {
     }
   };
 
-  const fetchRegioesDisponiveis = async () => {
-    try {
-      const estadosRes = await makeRequest('/imobiliarias/estados');
-      if (estadosRes.ok) {
-        const estados = await estadosRes.json();
-        setEstadosDisponiveis(estados);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar estados:', error);
-    }
-  };
+
 
   const formatCurrency = (value) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -397,14 +261,7 @@ const Dashboard = () => {
       textoBase = formatarMesAno(mesAno);
     }
 
-    // Adicionar informação de filtro regional
-    const filtrosRegiao = [];
-    if (filtroRegiao.estado) filtrosRegiao.push(`${filtroRegiao.estado}`);
-    if (filtroRegiao.cidade) filtrosRegiao.push(`${filtroRegiao.cidade}`);
-    
-    if (filtrosRegiao.length > 0) {
-      textoBase += ` - ${filtrosRegiao.join(', ')}`;
-    }
+
 
     return textoBase;
   };
@@ -437,19 +294,6 @@ const Dashboard = () => {
         <h1 className="page-title">Dashboard</h1>
         <p className="page-subtitle">
           Bem-vindo, {user?.nome}
-          {(filtroRegiao.cidade || filtroRegiao.estado) && (
-            <span style={{ 
-              marginLeft: '1rem',
-              padding: '0.25rem 0.5rem',
-              backgroundColor: '#dbeafe',
-              color: '#1e40af',
-              borderRadius: '12px',
-              fontSize: '0.75rem',
-              fontWeight: '500'
-            }}>
-              📍 Filtrado por região
-            </span>
-          )}
         </p>
       </div>
 
@@ -593,69 +437,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Filtros por Região */}
-        <div style={{ 
-          marginTop: '1rem',
-          paddingTop: '1rem',
-          borderTop: '1px solid #e5e7eb'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>
-              Filtrar por região:
-            </span>
-            
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <select
-                value={filtroRegiao.estado}
-                onChange={(e) => setFiltroRegiao({ ...filtroRegiao, estado: e.target.value, cidade: '' })}
-                style={{
-                  padding: '0.25rem 0.5rem',
-                  fontSize: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '4px',
-                  minWidth: '120px'
-                }}
-              >
-                <option value="">Todos os Estados</option>
-                {estadosDisponiveis.map(estado => (
-                  <option key={estado} value={estado}>{estado}</option>
-                ))}
-              </select>
 
-              <select
-                value={filtroRegiao.cidade}
-                onChange={(e) => setFiltroRegiao({ ...filtroRegiao, cidade: e.target.value })}
-                style={{
-                  padding: '0.25rem 0.5rem',
-                  fontSize: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '4px',
-                  minWidth: '120px'
-                }}
-                disabled={!filtroRegiao.estado && cidadesDisponiveis.length > 20} // Desabilitar se muitas cidades
-              >
-                <option value="">Todas as Cidades</option>
-                {cidadesDisponiveis.map(cidade => (
-                  <option key={cidade} value={cidade}>{cidade}</option>
-                ))}
-              </select>
-
-              {(filtroRegiao.estado || filtroRegiao.cidade) && (
-                <button
-                  onClick={() => setFiltroRegiao({ cidade: '', estado: '' })}
-                  className="btn btn-secondary"
-                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                  title="Limpar filtros regionais"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Estatísticas detalhadas por dia (apenas no modo semanal) */}
@@ -836,96 +618,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-            {/* Gráfico de Indicações e Visitas por Cidade */}
-      {stats.agendamentosPorCidade.length > 0 && (
-        <div className="card" style={{ marginTop: '2rem' }}>
-          <div className="card-header">
-            <h2 className="card-title">Indicações e Visitas por Cidade</h2>
-            <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
-              Top 10 cidades com mais movimentação no funil de vendas
-            </p>
-          </div>
-          <div className="card-body">
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={stats.agendamentosPorCidade}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="cidade" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                  interval={0}
-                />
-                <YAxis />
-                <Tooltip 
-                  labelFormatter={(value) => `Cidade: ${value}`}
-                  formatter={(value, name, props) => {
-                    const labels = {
-                      indicacoes: 'Indicações',
-                      agendamentos: 'Visitas',
-                      total: 'Total'
-                    };
-                    return [value, labels[name] || name];
-                  }}
-                  labelStyle={{ fontWeight: 'bold' }}
-                  contentStyle={{ 
-                    backgroundColor: '#f9fafb', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px'
-                  }}
-                />
-                <Legend />
-                                  <Bar dataKey="indicacoes" fill="#0891b2" name="Indicações" />
-                <Bar dataKey="agendamentos" fill="#3b82f6" name="Visitas" />
 
-              </BarChart>
-            </ResponsiveContainer>
-            
-            {/* Tabela de Conversão por Cidade */}
-            <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
-                Taxa de Conversão por Cidade
-              </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                {stats.agendamentosPorCidade.map((cidade, index) => (
-                  <div key={index} style={{ 
-                    padding: '0.75rem',
-                    backgroundColor: 'white',
-                    borderRadius: '6px',
-                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                  }}>
-                    <div style={{ fontWeight: '600', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                      {cidade.cidade}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Indicações → Visitas:</span>
-                        <span style={{ 
-                          fontSize: '0.75rem', 
-                          fontWeight: '600',
-                          color: parseFloat(cidade.conversaoAgendamento) > 50 ? '#000064' : 
-                                 parseFloat(cidade.conversaoAgendamento) > 20 ? '#3b82f6' : '#6366f1'
-                        }}>
-                          {cidade.conversaoAgendamento}%
-                        </span>
-                      </div>
-
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-2" style={{ gap: '2rem' }}>
         {/* Pipeline de Vendas */}
